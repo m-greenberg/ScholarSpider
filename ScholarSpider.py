@@ -15,8 +15,8 @@ import re
 
 
 # Spreadsheet paths and column of titles within sheets
-spreadsheet_1_path = 'C:\\Users\\maxgr\\Desktop\\sheet1.xlsx'   # List of publications already included in 2022 report
-spreadsheet_2_path = 'C:\\Users\\maxgr\\Desktop\\sheet2.xlsx'   # List of publications included in previous reports
+spreadsheet_1_path = '...\\sheet1.xlsx'   # List of publications already included in 2022 report
+spreadsheet_2_path = '...\\sheet2.xlsx'   # List of publications included in previous reports
 spreadsheet_1_title_col = 'A'
 spreadsheet_2_title_col = 'E'
 
