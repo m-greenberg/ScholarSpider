@@ -1,8 +1,8 @@
 __author__ = "Max Greenberg"
 __email__ = "mg957@cornell.edu"
-__date__ = "5/4/2022"
+__date__ = "5/17/2022"
 __license__ = "MIT"
-__version__ = "1.0"
+__version__ = "1.1"
 
 
 from selenium import webdriver
@@ -15,16 +15,17 @@ import re
 
 
 # Spreadsheet paths and column of titles within sheets
-spreadsheet_1_path = '...\\sheet1.xlsx'   # List of publications already included in 2022 report
-spreadsheet_2_path = '...\\sheet2.xlsx'   # List of publications included in previous reports
+spreadsheet_1_path = 'C:\\...\\sheet1.xlsx'   # List of publications already included in 2022 report
+spreadsheet_2_path = 'C:\\...\\sheet2.xlsx'   # List of publications included in previous reports
 spreadsheet_1_title_col = 'A'
 spreadsheet_2_title_col = 'E'
 
 
 # Google Scholar search parameters
 dmr = 'DMR-1719875'                                             # CCMR DMR number as main query
-to_exclude = ["APS", "arxiv", "chemrxiv"]                       # Sources to exclude; APS only has conference notes while arxiv and chemrxiv only have preprints
-filtered_phrases = ["Data from:", "Data From:", "Correction:"]  # Phrases to filter: we exclude datasets and corrections
+to_exclude = ["APS", "arxiv", "chemrxiv", "biorxiv"]            # Sources to exclude; APS only has conference notes while arxiv and chemrxiv only have preprints
+filtered_phrases = ["Data from:", "Data From:",
+                    "Correction:", "Correction to \""]          # Phrases to filter: we exclude datasets and corrections
 doc_types = ["[HTML]", "[BOOK]", "[PDF]", "[CITATION]"]         # Doc types that appear in Google Scholar titles
 since_year = "2021"                                             # Ask for no results from before this year (last year)
 
@@ -70,6 +71,16 @@ def get_already_downloaded():
     return added_list
 
 
+# Identifies whether title contains any elements indicating an invalid result (such as books and theses)
+def is_valid(title):
+    if title == title.upper() or "[BOOK]" in title:             # All-uppercase titles are always Cornell theses
+        return False
+    for p in filtered_phrases:                                  # Removes papers with phrases to filter
+        if p in title:
+            return False
+    return True
+
+
 # Cycles through Google Scholar results and grabs all titles not listed in above spreadsheets
 def collect_papers():
     added_list = get_already_downloaded()
@@ -83,11 +94,10 @@ def collect_papers():
         elements = driver.find_elements_by_xpath("//*[@class='gs_ri']")
         for e in elements:
             title = e.find_element_by_class_name("gs_rt").text  # Grabs all titles on page
-            for p in filtered_phrases:                          # Removes papers with phrases to filter
-                if p in title:
-                    title = ''
-            title2 = reformat(title)
-            if title2 not in added_list and len(title2) > 1:    # Ensures title is not in spreadsheets and has at least one Latin character
+            if not is_valid(title):
+                title = ''
+            rtitle = reformat(title)
+            if rtitle not in added_list and len(rtitle) > 1:    # Ensures title is not in spreadsheets and has at least one Latin character
                 to_add_list.append([title, i+1])                # Adds title of paper and Scholar page number to list
     driver.close()
     return to_add_list
